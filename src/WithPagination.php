@@ -9,14 +9,11 @@ trait WithPagination
     public $page = 1;
     public $paginators = [];
 
-    public $queryStringPropertyMap = [
-        'foo' => 'paginators.foo',
-    ];
-
     public function getQueryString()
     {
+        // This is a hack.
         foreach ($this->paginators as $key => $value) {
-            $this->$key = $value;
+            if (! isset($this->$key)) $this->$key = $value;
         }
 
         $queryString = method_exists($this, 'queryString')
