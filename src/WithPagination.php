@@ -7,12 +7,25 @@ use Illuminate\Pagination\Paginator;
 trait WithPagination
 {
     public $page = 1;
+    public $paginators = [];
+
+    public $queryStringPropertyMap = [
+        'foo' => 'paginators.foo',
+    ];
 
     public function getQueryString()
     {
+        foreach ($this->paginators as $key => $value) {
+            $this->$key = $value;
+        }
+
         $queryString = method_exists($this, 'queryString')
             ? $this->queryString()
             : $this->queryString;
+
+        foreach ($this->paginators as $key => $value) {
+            $queryString[$key] = ['except' => 1];
+        }
 
         return array_merge(['page' => ['except' => 1]], $queryString);
     }
@@ -21,8 +34,12 @@ trait WithPagination
     {
         $this->page = $this->resolvePage();
 
-        Paginator::currentPageResolver(function () {
-            return (int) $this->page;
+        Paginator::currentPageResolver(function ($pageName) {
+            if (! isset($this->paginators[$pageName])) {
+                return $this->paginators[$pageName] = request()->query($pageName, 1);
+            }
+
+            return $this->paginators[$pageName];
         });
 
         Paginator::defaultView($this->paginationView());
@@ -39,29 +56,33 @@ trait WithPagination
         return 'livewire::simple-' . (property_exists($this, 'paginationTheme') ? $this->paginationTheme : 'tailwind');
     }
 
-    public function previousPage()
+    public function previousPage($pageName = 'page')
     {
-        $this->setPage(max($this->page - 1, 1));
+        $this->setPage(max($this->page - 1, 1), $pageName);
     }
 
-    public function nextPage()
+    public function nextPage($pageName = 'page')
     {
-        $this->setPage($this->page + 1);
+        $this->setPage($this->page + 1, $pageName);
     }
 
-    public function gotoPage($page)
+    public function gotoPage($page, $pageName = 'page')
     {
-        $this->setPage($page);
+        $this->setPage($page, $pageName);
     }
 
-    public function resetPage()
+    public function resetPage($pageName = 'page')
     {
-        $this->setPage(1);
+        $this->setPage(1, $pageName);
     }
 
-    public function setPage($page)
+    public function setPage($page, $pageName = 'page')
     {
-        $this->page = $page;
+        if ($pageName === 'page') {
+            $this->page = $page;
+        }
+
+        $this->paginators[$pageName] = $page;
     }
 
     public function resolvePage()

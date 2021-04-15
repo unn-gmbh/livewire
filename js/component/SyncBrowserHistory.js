@@ -15,8 +15,12 @@ export default function () {
         // We are using setTimeout() to make sure all the components on the page have
         // loaded before we store anything in the history state (because the position
         // of a component on a page matters for generating its state signature).
+        console.log(component.effects.path);
         setTimeout(() => {
-            let url = onlyChangeThePathAndQueryString(initializedPath ? undefined : component.effects.path)
+            // let url = onlyChangeThePathAndQueryString(initializedPath ? undefined : component.effects.path)
+            // This breaks the tests - I forget why we need the initializedPath check, but clearly we do
+            // By removing it it DOES allow for multi-pagination.
+            let url = onlyChangeThePathAndQueryString(component.effects.path)
 
             // Generate faux response.
             let response = {
