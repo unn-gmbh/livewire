@@ -5,7 +5,13 @@ export default function () {
         if (! (el.tagName.toLowerCase() === 'input' && el.type === 'file')) return
 
         let start = () => el.dispatchEvent(new CustomEvent('livewire-upload-start', { bubbles: true }))
-        let finish = () => el.dispatchEvent(new CustomEvent('livewire-upload-finish', { bubbles: true }))
+        let finish = (tmpFilenames) => {
+            el.dispatchEvent(
+              new CustomEvent('livewire-upload-finish', {
+                  bubbles: true, detail: { tmpFilenames }
+              })
+            )
+        }
         let error = () => el.dispatchEvent(new CustomEvent('livewire-upload-error', { bubbles: true }))
         let progress = (progressEvent) => {
             var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total )
