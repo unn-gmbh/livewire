@@ -16,6 +16,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@button');
 
+                    $browser->pause(1);
                     $browser->assertVisible('@show');
                     $browser->assertNotVisible('@hide');
 
@@ -39,7 +40,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@button');
 
-                    $browser->pause(100);
+                    $browser->pause(101);
 
                     $browser->assertNotVisible('@show-w-delay');
                 })
@@ -47,7 +48,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@button');
 
-                    $browser->pause(200);
+                    $browser->pause(201);
 
                     $browser->assertVisible('@show-w-delay');
                 })
@@ -90,6 +91,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@error-button');
 
+                    $browser->pause(1);
                     $browser->assertNotVisible('@hide');
                     $browser->assertVisible('@show');
 
@@ -123,6 +125,7 @@ class Test extends TestCase
                 ->assertScript('getComputedStyle(document.querySelector(\'[dusk="flex"]\')).display', 'none')
                 ->assertScript('getComputedStyle(document.querySelector(\'[dusk="table"]\')).display', 'none')
                 ->assertScript('getComputedStyle(document.querySelector(\'[dusk="grid"]\')).display', 'none')
+                ->assertScript('getComputedStyle(document.querySelector(\'[dusk="inline-flex"]\')).display', 'none')
                 ->waitForLivewire(function ($b) {
                     $b->click('@refresh');
                     $b->pause(50);
@@ -133,6 +136,7 @@ class Test extends TestCase
                     $b->assertScript('getComputedStyle(document.querySelector(\'[dusk="flex"]\')).display', 'flex');
                     $b->assertScript('getComputedStyle(document.querySelector(\'[dusk="table"]\')).display', 'table');
                     $b->assertScript('getComputedStyle(document.querySelector(\'[dusk="grid"]\')).display', 'grid');
+                    $b->assertScript('getComputedStyle(document.querySelector(\'[dusk="inline-flex"]\')).display', 'inline-flex');
                 })
             ;
         });
@@ -153,7 +157,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
 
-                    $browser->pause(50);
+                    $browser->pause(51);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertNotVisible('@delay-shorter');
@@ -167,7 +171,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(100);
+                    $browser->pause(101);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
@@ -181,7 +185,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(150);
+                    $browser->pause(151);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
@@ -195,7 +199,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(200);
+                    $browser->pause(201);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
@@ -209,7 +213,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(300);
+                    $browser->pause(301);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
@@ -223,7 +227,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(500);
+                    $browser->pause(501);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
@@ -237,7 +241,7 @@ class Test extends TestCase
                 ->waitForLivewire(function (Browser $browser) {
                     $browser->click('@load');
                     
-                    $browser->pause(1000);
+                    $browser->pause(1001);
 
                     $browser->assertVisible('@delay-shortest');
                     $browser->assertVisible('@delay-shorter');
