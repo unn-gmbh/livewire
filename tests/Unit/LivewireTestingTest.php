@@ -4,7 +4,9 @@ namespace Tests\Unit;
 
 use Livewire\Component;
 use Livewire\Livewire;
+use PHPUnit\Framework\AssertionFailedError;
 use Illuminate\Support\Facades\Route;
+use Tests\Unit\Components\ComponentWhichReceivesEvent;
 
 class LivewireTestingTest extends TestCase
 {
@@ -188,6 +190,8 @@ class LivewireTestingTest extends TestCase
         Livewire::test(EmitsEventsComponentStub::class)
             ->call('emitFooToSomeComponent')
             ->assertEmittedTo('some-component', 'foo')
+            ->call('emitFooToAComponentAsAModel')
+            ->assertEmittedTo(ComponentWhichReceivesEvent::class, 'foo')
             ->call('emitFooToSomeComponentWithParam', 'bar')
             ->assertEmittedTo('some-component', 'foo', 'bar')
             ->call('emitFooToSomeComponentWithParam', 'bar')
@@ -234,7 +238,7 @@ class LivewireTestingTest extends TestCase
     }
 
     /** @test */
-    public function assert_dispatched()
+    public function assert_dispatched_browser_event()
     {
         Livewire::test(DispatchesBrowserEventsComponentStub::class)
             ->call('dispatchFoo')
@@ -245,6 +249,15 @@ class LivewireTestingTest extends TestCase
             ->assertDispatchedBrowserEvent('foo', function ($event, $data) {
                 return $event === 'foo' && $data === ['bar' => 'baz'];
             });
+    }
+
+    /** @test */
+    public function assert_dispatched_browser_event_fails()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        Livewire::test(DispatchesBrowserEventsComponentStub::class)
+            ->assertDispatchedBrowserEvent('foo');
     }
 
     /** @test */
@@ -286,6 +299,17 @@ class LivewireTestingTest extends TestCase
             ])
             ->set('bar', '')
             ->assertHasErrors(['foo', 'bar']);
+    }
+
+    /** @test */
+    public function it_ignores_rules_with_params(){
+        Livewire::test(ValidatesDataWithRulesHasParams::class)
+            ->call('submit')
+            ->assertHasErrors(['foo' => 'min'])
+            ->assertHasErrors(['foo' => 'min:2'])
+            ->set('foo', 'FOO')
+            ->assertHasNoErrors(['foo' => 'min'])
+            ->assertHasNoErrors(['foo' => 'min:2']);
     }
 }
 
@@ -347,6 +371,11 @@ class EmitsEventsComponentStub extends Component
     public function emitFooToSomeComponentWithParam($param)
     {
         $this->emitTo('some-component','foo', $param);
+    }
+
+    public function emitFooToAComponentAsAModel()
+    {
+        $this->emitTo(ComponentWhichReceivesEvent::class,'foo');
     }
 
     public function emitFooUp()
@@ -417,6 +446,22 @@ class ValidatesDataWithRealTimeStub extends Component
         $this->validateOnly($field, [
             'foo' => 'required|min:6',
             'bar' => 'required',
+        ]);
+    }
+
+    public function render()
+    {
+        return app('view')->make('null-view');
+    }
+}
+
+class ValidatesDataWithRulesHasParams extends Component{
+    public $foo, $bar;
+
+    public function submit()
+    {
+        $this->validate([
+            'foo' => 'string|min:2',
         ]);
     }
 
