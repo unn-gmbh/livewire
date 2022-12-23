@@ -167,6 +167,17 @@ class ValidationTest extends TestCase
     }
 
     /** @test */
+    public function validating_only_a_specific_field_wont_throw_an_error_if_the_array_key_doesnt_exist()
+    {
+        $component = Livewire::test(ForValidation::class);
+
+        $component
+            ->set('items', [])
+            ->call('runDeeplyNestedValidationOnly', 'items.0.baz')
+            ->assertSee('items.0.baz field is required');
+    }
+
+    /** @test */
     public function can_validate_only_a_specific_field_with_custom_message_property()
     {
         $component = Livewire::test(ForValidation::class);
@@ -462,8 +473,27 @@ class ValidationTest extends TestCase
         Livewire::test(ValidatesComputedProperty::class)
             ->call('runValidationRuleWithoutProperty');
     }
+
+    /** @test */
+    public function when_unwrapping_data_for_validation_an_object_is_checked_if_it_is_wireable_first()
+    {
+        if (version_compare(PHP_VERSION, '7.4', '<')) {
+            $this->markTestSkipped('Typed Property Initialization not supported prior to PHP 7.4');
+        }
+
+        require_once __DIR__.'/WireablesCanBeSetAsPublicPropertiesStubs.php';
+
+        Livewire::test(ValidatesWireableProperty::class)
+            ->call('runValidation')
+            ->assertHasErrors('customCollection.0.amount')
+            ->set('customCollection.0.amount', 150)
+            ->call('runValidation')
+            ->assertHasNoErrors('customCollection.0.amount')
+            ;
+    }
 }
 
+#[\AllowDynamicProperties]
 class ForValidation extends Component
 {
     public $foo = 'foo';
