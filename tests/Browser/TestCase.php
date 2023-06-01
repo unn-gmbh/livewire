@@ -5,6 +5,10 @@ namespace Tests\Browser;
 use Closure;
 use Exception;
 use Psy\Shell;
+use Tests\Browser\Stubs\AllowListedMiddleware;
+use Tests\Browser\Stubs\AllowListedMiddlewareTyped;
+use Tests\Browser\Stubs\BlockListedMiddleware;
+use Tests\Browser\Stubs\BlockListedMiddlewareTyped;
 use Throwable;
 use Sushi\Sushi;
 use Livewire\Livewire;
@@ -26,7 +30,6 @@ use Facebook\WebDriver\Remote\DesiredCapabilities;
 use Illuminate\Support\Facades\View;
 use Orchestra\Testbench\Dusk\Options as DuskOptions;
 use Orchestra\Testbench\Dusk\TestCase as BaseTestCase;
-use Tests\Browser\Security\Component as SecurityComponent;
 
 class TestCase extends BaseTestCase
 {
@@ -104,11 +107,11 @@ class TestCase extends BaseTestCase
                 return View::file(__DIR__ . '/DynamicComponentLoading/view-dynamic-component.blade.php');
             })->middleware('web')->name('dynamic-component');
 
-            Route::get('/livewire-dusk/{component}', function ($component) {
-                $class = urldecode($component);
-
-                return app()->call(new $class);
-            })->middleware('web', AllowListedMiddleware::class, BlockListedMiddleware::class);
+            if (version_compare(PHP_VERSION, '7.4', '>=')) {
+                $middleware = ['web', AllowListedMiddlewareTyped::class, BlockListedMiddlewareTyped::class];
+            } else {
+                $middleware = ['web', AllowListedMiddleware::class, BlockListedMiddleware::class];
+            }
 
             Route::get('/force-login/{userId}', function ($userId) {
                 Auth::login(User::find($userId));
@@ -142,6 +145,18 @@ class TestCase extends BaseTestCase
                 ]);
             })->name('entangle-turbo');
 
+            Route::get('/livewire-dusk/{component}', function ($component) {
+                $class = urldecode($component);
+
+                return app()->call(new $class);
+            })->middleware($middleware);
+
+            Route::get('/{locale}/livewire-dusk/{component}', function ($locale, $component) {
+                $class = urldecode($component);
+
+                return app()->call(new $class);
+            })->middleware($middleware);
+
             app('session')->put('_token', 'this-is-a-hack-because-something-about-validating-the-csrf-token-is-broken');
 
             app('config')->set('view.paths', [
@@ -151,7 +166,11 @@ class TestCase extends BaseTestCase
 
             config()->set('app.debug', true);
 
-            Livewire::addPersistentMiddleware(AllowListedMiddleware::class);
+            if (version_compare(PHP_VERSION, '7.4', '>=')) {
+                Livewire::addPersistentMiddleware(AllowListedMiddlewareTyped::class);
+            } else {
+                Livewire::addPersistentMiddleware(AllowListedMiddleware::class);
+            }
 
             app('config')->set('use_alpine_v3', $isUsingAlpineV3);
         });
@@ -281,26 +300,6 @@ class TestCase extends BaseTestCase
         $sh->run();
 
         return $sh->getScopeVariables(false);
-    }
-}
-
-class AllowListedMiddleware
-{
-    public function handle($request, $next)
-    {
-        SecurityComponent::$loggedMiddleware[] = static::class;
-
-        return $next($request);
-    }
-}
-
-class BlockListedMiddleware
-{
-    public function handle($request, $next)
-    {
-        SecurityComponent::$loggedMiddleware[] = static::class;
-
-        return $next($request);
     }
 }
 
